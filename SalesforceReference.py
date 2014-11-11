@@ -34,9 +34,27 @@ class SalesforceReferenceCommand(sublime_plugin.WindowCommand):
             "http://www.salesforce.com/us/developer/docs/apexcode/",
             "Getting Started"
         )
-        thread = RetrieveIndexThread(self.window, index, True)
-        thread.start()
-        ThreadProgress(thread, 'Retrieving Salesforce Reference Index...', '')
+        settings = sublime.load_settings("SublimeSalesforceReference.sublime-settings")
+        threads = []
+        for index in get_index_list(settings):
+            thread = RetrieveIndexThread(self.window, index, True)
+            threads.append(thread)
+            thread.start()
+            ThreadProgress(thread, 'Retrieving Salesforce Reference Index...', '')
+
+def get_index_list(settings):
+    indexList = []
+    tocList = settings.get("tocList")
+    if tocList == None:
+        print("Failed to retrieve 'tocList' from settings")
+    else:
+        for toc in tocList:
+            index = Index(toc.get("endpoint"), toc.get("baseUrl"), toc.get("sectionTitle"))
+            indexList.append(index)
+    return indexList
+
+
+
 
 
 class RetrieveIndexThread(threading.Thread):
